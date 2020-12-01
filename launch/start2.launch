@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_waffle.urdf.xacro"/>
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-x 0 -y 0 -z 1 -urdf -model turtlebot3_waffle -param robot_description" output="screen"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find booster2)/world/collapsed_house.world"/>
+    </include>
+
+    <arg name="rqt_virtual_joy" default="ps3" />
+
+    <arg name="config_filepath" default="$(find teleop_twist_joy)/config/ps3.config.yaml" />
+    <arg name="joy_topic" default="joy" />
+
+    <node pkg="joy" type="joy_node" name="joy_node">
+        <param name="dev" value="/dev/input/js0" />
+        <param name="deadzone" value="0.3" />
+        <param name="autorepeat_rate" value="20" />
+        <remap from="joy" to="$(arg joy_topic)" />
+    </node>
+
+    <node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
+        <rosparam command="load" file="$(arg config_filepath)" />
+        <remap from="joy" to="$(arg joy_topic)" />
+    </node>
+
+</launch>
