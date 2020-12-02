@@ -1,0 +1,68 @@
+<launch>
+  <!-- Arguments -->
+  <!--arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/-->
+  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/> <!-- edit this with the location of the map-->
+  <arg name="open_rviz" default="true"/>
+  <arg name="move_forward_only" default="false"/>
+  <arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_waffle.urdf.xacro"/>
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-x 0 -y 0 -z 2 -urdf -model turtlebot3_waffle -param robot_description" output="screen"/>
+
+  <arg name="slam_methods" default="gmapping" doc="slam type [gmapping, cartographer, hector, karto, frontier_exploration]"/>
+  <arg name="open_rviz" default="true"/>
+
+ <!-- virtual joystick -->
+  <node name="rqt_virtual_joy" pkg="rqt_virtual_joy" type="rqt_virtual_joy"/>
+ <!-- State publishers for rviz-->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+  <!-- Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find booster2)/world/collapsed_house.world"/>
+  </include>
+  <!-- TurtleBot3 -->
+  <!--include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch">
+    <arg name="model" value="$(arg model)" />
+  </include-->
+
+  <!-- SLAM: Gmapping, Cartographer, Hector, Karto, Frontier_exploration, RTAB-Map -->
+  <include file="$(find turtlebot3_slam)/launch/turtlebot3_$(arg slam_methods).launch">
+    <arg name="model" value="turtlebot3_waffle.urdf.xacro"/>
+    <arg name="configuration_basename" value="$(arg configuration_basename)"/>
+  </include>
+
+  <!-- rviz -->
+  <group if="$(arg open_rviz)">
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find turtlebot3_slam)/rviz/turtlebot3_$(arg slam_methods).rviz"/>
+  </group>
+
+  <arg name="rqt_virtual_joy" default="ps3" />
+  <arg name="config_filepath" default="$(find teleop_twist_joy)/config/ps3.config.yaml" />
+  <arg name="joy_topic" default="joy" />
+  <!-- joy node -->
+  <node pkg="joy" type="joy_node" name="joy_node">
+    <param name="dev" value="/dev/input/js0" />
+    <param name="deadzone" value="0.3" />
+    <param name="autorepeat_rate" value="20" />
+
+  </node>
+  <!-- teleop_twist_joy node -->
+  <node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
+    <rosparam command="load" file="$(arg config_filepath)" />
+
+  </node>
+
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <!-- AMCL -->
+  <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/>
+
+  <!-- move_base -->
+  <include file="$(find turtlebot3_navigation)/launch/move_base.launch">
+    <arg name="model" value="$(arg model)" />
+    <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+  </include>
+</launch>
