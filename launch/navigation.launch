@@ -1,7 +1,8 @@
 <launch>
   <!-- Arguments -->
-  <!--arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/-->
-  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/> <!-- edit this with the location of the map-->
+  <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="map_file" default="/home/aaron/Desktop/collasped_house.yaml"/> <!-- edit this with the location of the map-->
+  <!--arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/-->
   <arg name="open_rviz" default="true"/>
   <arg name="move_forward_only" default="false"/>
   <arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/>
@@ -9,7 +10,7 @@
   <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-x 0 -y 0 -z 2 -urdf -model turtlebot3_waffle -param robot_description" output="screen"/>
 
   <arg name="slam_methods" default="gmapping" doc="slam type [gmapping, cartographer, hector, karto, frontier_exploration]"/>
-  <arg name="open_rviz" default="true"/>
+
 
  <!-- virtual joystick -->
   <node name="rqt_virtual_joy" pkg="rqt_virtual_joy" type="rqt_virtual_joy"/>
@@ -27,10 +28,10 @@
   </include-->
 
   <!-- SLAM: Gmapping, Cartographer, Hector, Karto, Frontier_exploration, RTAB-Map -->
-  <include file="$(find turtlebot3_slam)/launch/turtlebot3_$(arg slam_methods).launch">
+  <!--include file="$(find turtlebot3_slam)/launch/turtlebot3_$(arg slam_methods).launch">
     <arg name="model" value="turtlebot3_waffle.urdf.xacro"/>
     <arg name="configuration_basename" value="$(arg configuration_basename)"/>
-  </include>
+  </include-->
 
   <!-- rviz -->
   <group if="$(arg open_rviz)">
@@ -62,7 +63,7 @@
 
   <!-- move_base -->
   <include file="$(find turtlebot3_navigation)/launch/move_base.launch">
-    <arg name="model" value="$(arg model)" />
+    <arg name="model" value="waffle"/>
     <arg name="move_forward_only" value="$(arg move_forward_only)"/>
   </include>
 </launch>
